@@ -34,7 +34,7 @@
                         </li>
                     </ul>
 
-                    <ul class="navbar-nav" v-if="!$auth.loggedIn">
+                    <ul class="navbar-nav" v-if="!hasToken">
                         <li class="nav-item">
                             <nuxt-link
                                 to="/user/register"
@@ -53,7 +53,7 @@
                         </li>
                     </ul>
 
-                    <ul class="navbar-nav" v-if="$auth.loggedIn">
+                    <ul class="navbar-nav" v-if="hasToken">
                         <li class="nav-item">
                             <nuxt-link
                                 to="/user/my-account"
@@ -80,6 +80,20 @@
         </div>
     </div>
 </template>
+<script>
+export default {
+    computed: {
+        hasToken() {
+            return this.$store.state.isAuthenticated;
+        },
+    },
+    mounted() {
+        if (!!this.$apolloHelpers.getToken()) {
+            this.$store.commit("setIsLoggedIn", true);
+        }
+    },
+};
+</script>
 
 
 

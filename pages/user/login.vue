@@ -73,8 +73,6 @@
 
 <script>
 export default {
-    middleware: "auth",
-    auth: "guest",
     data() {
         return {
             errors: null,
@@ -84,26 +82,43 @@ export default {
             status: false,
         };
     },
-
     methods: {
-        submitForm() {
-            this.$auth
-                .loginWith("local", {
-                    data: {
-                        email: this.email,
-                        password: this.password,
+        async onSubmit() {
+            try {
+                const response = await this.$apollo.mutate({
+                    mutation: gql`
+                        mutation LoginUser($data: LoginUserInput!) {
+                            loginUser(data: $data) {
+                                token
+                                user {
+                                    _id
+                                    fullName
+                                    email
+                                }
+                            }
+                        }
+                    `,
+                    variables: {
+                        data: {
+                            email: this.email,
+                            password: this.password,
+                        },
                     },
-                })
-                .catch((error) => {
-                    console.log(error);
-                    if (error.response.data.message) {
-                        this.login_error = error.response.data.message;
-                    }
-                    if (error.response.data.errors) {
-                        this.errors = error.response.data.errors;
-                    }
                 });
+                const token = response.data.loginUser.token;
+                this.$store.commit("isAuthenticated", true);
+                await this.$apolloHelpers.onLogin(token);
+                this.$router.push("/");
+            } catch (e) {
+                console.error(e);
+            }
         },
+    },
+    mounted() {
+        const hasToken = !!this.$apolloHelpers.getToken();
+        if (hasToken) {
+            this.$router.push("/");
+        }
     },
 };
 </script>

@@ -14,18 +14,13 @@ module.exports = {
 			throw new Error("Email already in use");
 		}
 		args.data.password = await hashPassword(args.data.password);
-		let result = await db.collection("users").insertOne(args.data);
-		const token = generateToken(result.insertedId);
-
-		result = await db
+		const result = await db
 			.collection("users")
-			.findOneAndUpdate(
-				{ _id: result.insertedId },
-				{ $set: { tokens: [{ token }] } }
-			);
+			.insertOne({ ...args.data, tokens: [] });
+
 		return {
 			message: "User saved",
-			_id: result.value._id,
+			_id: result.insertedId,
 		};
 	},
 	async loginUser(parent, args, { db }, info) {

@@ -2,10 +2,12 @@
     <div>
         <h1>Register</h1>
         <hr />
-
+        <div class="alert alert-success" v-if="registered">
+            You have registered successfully
+        </div>
         <div class="row">
             <div class="col-md-6">
-                <form action="" method="post" @submit.prevent="submitForm()">
+                <form action="" method="post" @submit.prevent="onSubmit()">
                     <div class="form-group mb-2">
                         <label class="form-label" for="inputFullName"
                             >Full Name</label
@@ -15,15 +17,15 @@
                             class="form-control"
                             id="inputFullName"
                             :class="{
-                                'is-invalid': errors && errors.full_name,
+                                'is-invalid': errors && errors.fullName,
                             }"
-                            v-model="full_name"
+                            v-model="fullName"
                         />
                         <div
                             class="invalid-feedback"
-                            v-if="errors && errors.full_name"
+                            v-if="errors && errors.fullName"
                         >
-                            {{ errors.full_name.msg }}
+                            {{ errors.fullName.msg }}
                         </div>
                     </div>
 
@@ -78,53 +80,71 @@
 </template>
 
 <script>
+import gql from "graphql-tag";
+
 export default {
-    middleware: "auth",
-    auth: "guest",
     data() {
         return {
             errors: null,
-            full_name: null,
+            fullName: null,
             email: null,
             password: null,
             status: false,
+            registered: false,
         };
     },
 
     methods: {
-        submitForm() {
-            this.$axios
-                .post("/api/users/register", {
-                    full_name: this.full_name,
-                    email: this.email,
-                    password: this.password,
-                })
-                .then((response) => {
-                    console.log(response);
-                    if (response.data._id) {
-                        this.$router.push({
-                            name: "user-login",
-                            params: { registered: "yes" },
-                        });
-                        // log in if successfully registered
-                        this.$auth
-                            .loginWith("local", {
-                                data: {
-                                    email: this.email,
-                                    password: this.password,
-                                },
-                            })
-                            .catch((error) => {
-                                console.log(error);
-                            });
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                    if (error.response.data.errors) {
-                        this.errors = error.response.data.errors;
-                    }
+        async onSubmit() {
+            try {
+                let response = await this.$apollo.mutate({
+                    mutation: gql`
+                        mutation CreateUser($data: CreateUserInput!) {
+                            createUser(data: $data) {
+                                message
+                                _id
+                            }
+                        }
+                    `,
+                    variables: {
+                        data: {
+                            fullName: this.fullName,
+                            email: this.email,
+                            password: this.password,
+                        },
+                    },
                 });
+                if (response.data.createUser._id) {
+                    this.registered = true;
+                    // log in if successfully registered
+                    response = await this.$apollo.mutate({
+                        mutation: gql`
+                            mutation LoginUser($data: LoginUserInput!) {
+                                loginUser(data: $data) {
+                                    token
+                                    user {
+                                        _id
+                                        fullName
+                                        email
+                                    }
+                                }
+                            }
+                        `,
+                        variables: {
+                            data: {
+                                email: this.email,
+                                password: this.password,
+                            },
+                        },
+                    });
+                    const token = response.data.loginUser.token;
+                    this.$store.commit("isAuthenticated", true);
+                    await this.$apolloHelpers.onLogin(token);
+                    this.$router.push("/");
+                }
+            } catch (e) {
+                console.error(e);
+            }
         },
     },
 };
