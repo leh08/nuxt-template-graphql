@@ -138,7 +138,6 @@ export default {
                         },
                     });
                     const token = response.data.loginUser.token;
-                    this.$store.commit("isAuthenticated", true);
                     await this.$apolloHelpers.onLogin(token);
                     this.$router.push("/");
                 }

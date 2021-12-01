@@ -18,12 +18,12 @@ export default {
 	},
 
 	// Global CSS: https://go.nuxtjs.dev/config-css
-	css: ["~/node_modules/bootstrap/dist/css/bootstrap.min.css"],
+	css: ["~/assets/bootstrap-5.1.3/css/bootstrap.min.css"],
 
 	// Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
 	plugins: [
 		{
-			src: "~/node_modules/bootstrap/dist/js/bootstrap.min",
+			src: "~/assets/bootstrap-5.1.3/js/bootstrap.min",
 			mode: "client",
 		},
 	],
@@ -44,7 +44,6 @@ export default {
 			default: "~/plugins/apollo-config.js",
 		},
 	},
-	serverMiddleware: ["~/api"],
 	// Build Configuration: https://go.nuxtjs.dev/config-build
 	build: {},
 };

@@ -31,12 +31,15 @@
 </template>
 
 <script>
+import ARTICLES_QUERY from "~/graphql/articles";
 export default {
-    async asyncData(context) {
-        const { data } = await context.$axios.get("/api/articles");
+    data() {
         return {
-            articles: data,
+            articles: [],
         };
+    },
+    apollo: {
+        articles: ARTICLES_QUERY,
     },
 };
 </script>

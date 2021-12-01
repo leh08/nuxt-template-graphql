@@ -34,7 +34,7 @@
                         </li>
                     </ul>
 
-                    <ul class="navbar-nav" v-if="!hasToken">
+                    <ul class="navbar-nav" v-if="!isAuthenticated">
                         <li class="nav-item">
                             <nuxt-link
                                 to="/user/register"
@@ -53,7 +53,7 @@
                         </li>
                     </ul>
 
-                    <ul class="navbar-nav" v-if="hasToken">
+                    <ul class="navbar-nav" v-if="isAuthenticated">
                         <li class="nav-item">
                             <nuxt-link
                                 to="/user/my-account"
@@ -81,15 +81,33 @@
     </div>
 </template>
 <script>
+import gql from "graphql-tag";
+
 export default {
-    computed: {
-        hasToken() {
-            return this.$store.state.isAuthenticated;
+    apollo: {
+        isAuthenticated: {
+            query: gql`
+                {
+                    isAuthenticated @client
+                }
+            `,
+            pollInterval: 300,
+            fetchPolicy: "no-cache",
         },
     },
-    mounted() {
+
+    async updated() {
         if (!!this.$apolloHelpers.getToken()) {
-            this.$store.commit("setIsLoggedIn", true);
+            const response = await this.$apollo.mutate({
+                mutation: gql`
+                    mutation SetIsAuthenticated($value: Boolean!) {
+                        setIsAuthenticated(value: $value) @client
+                    }
+                `,
+                variables: {
+                    value: true,
+                },
+            });
         }
     },
 };

@@ -8,9 +8,20 @@
 </template>
 
 <script>
+import gql from "graphql-tag";
+
 export default {
     async asyncData(context) {
-        context.store.commit("isAuthenticated", false);
+        await context.app.apolloProvider.defaultClient.mutate({
+            mutation: gql`
+                mutation SetIsAuthenticated($value: Boolean!) {
+                    setIsAuthenticated(value: $value) @client
+                }
+            `,
+            variables: {
+                value: false,
+            },
+        });
         await context.$apolloHelpers.onLogout();
         context.redirect("/");
     },

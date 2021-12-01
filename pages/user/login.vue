@@ -12,7 +12,7 @@
 
         <div class="row">
             <div class="col-md-6">
-                <form action="" method="post" @submit.prevent="submitForm()">
+                <form action="" method="post" @submit.prevent="onSubmit()">
                     <div class="form-group mb-2">
                         <label class="form-label" for="inputEmail">Email</label>
                         <input
@@ -72,6 +72,8 @@
 </template>
 
 <script>
+import gql from "graphql-tag";
+
 export default {
     data() {
         return {
@@ -106,19 +108,12 @@ export default {
                     },
                 });
                 const token = response.data.loginUser.token;
-                this.$store.commit("isAuthenticated", true);
                 await this.$apolloHelpers.onLogin(token);
                 this.$router.push("/");
             } catch (e) {
                 console.error(e);
             }
         },
-    },
-    mounted() {
-        const hasToken = !!this.$apolloHelpers.getToken();
-        if (hasToken) {
-            this.$router.push("/");
-        }
     },
 };
 </script>

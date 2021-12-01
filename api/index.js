@@ -1,23 +1,21 @@
-const express = require("express");
+const { ApolloServer } = require("apollo-server");
 const db = require("./db");
 
-// Create express instnace
-const app = express();
+const typeDefs = require("./typeDefs");
 
-// Init body-parser options (inbuilt with express)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const resolvers = require("./resolvers");
 
-// Require & Import API routes
-const users = require("./routes/users");
-const articles = require("./routes/articles");
+const server = new ApolloServer({
+	typeDefs,
+	resolvers,
+	context: ({ req }) => {
+		return {
+			req,
+			db,
+		};
+	},
+});
 
-// Use API Routes
-app.use(users);
-app.use(articles);
-
-// Export the server middleware
-module.exports = {
-	path: "/api",
-	handler: app,
-};
+server.listen().then(({ url }) => {
+	console.log(`🚀  Server ready at ${url}`);
+});
